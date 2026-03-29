@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: suspects
+    // Fields:
+    //   - name: string (required)
+    //   - risk_level: string (required, enum: Low, Medium, High, Critical)
+    //   - category: string (required)
+    //   - last_seen: string (optional)
+    //   - description: string (optional)
+    //   - image_url: string (optional)
+    //   - status: string (optional, enum: Active, Inactive)
+    //   - uid: string (optional)
+    //
+    // Collection: alerts
+    // Fields:
+    //   - timestamp: timestamp (required)
+    //   - camera_id: string (required)
+    //   - location: string (required)
+    //   - suspect_id: string (optional)
+    //   - suspect_name: string (optional)
+    //   - risk_level: string (optional)
+    //   - confidence: number (optional)
+    //   - behavior_flag: string (optional)
+    //   - status: string (optional, enum: Pending, Resolved)
+    //
+    // Collection: audit_logs
+    // Fields:
+    //   - timestamp: timestamp (required)
+    //   - user: string (required)
+    //   - action: string (required)
+    //   - details: string (optional)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "orla136btcse25@igdtuw.ac.in" && request.auth.token.email_verified == true);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidSuspect(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.risk_level in ['Low', 'Medium', 'High', 'Critical'] &&
+             data.category is string &&
+             (!('status' in data) || data.status in ['Active', 'Inactive']);
+    }
+
+    function isValidAlert(data) {
+      return data.timestamp is timestamp &&
+             data.camera_id is string &&
+             data.location is string;
+    }
+
+    function isValidAuditLog(data) {
+      return data.timestamp is timestamp &&
+             data.user is string &&
+             data.action is string;
+    }
+
+    function isValidSignup(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.email is string &&
+             data.region is string &&
+             data.experience is string &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidContact(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.email is string &&
+             data.message is string &&
+             data.timestamp is timestamp;
+    }
+
+    match /suspects/{suspectId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidSuspect(request.resource.data);
+      allow update: if isAuthenticated() && isValidSuspect(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /alerts/{alertId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAlert(request.resource.data);
+      allow update: if isAuthenticated() && isValidAlert(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidAuditLog(request.resource.data);
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /agent_signups/{signupId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow anyone to apply
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /contact_messages/{messageId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow anyone to contact
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

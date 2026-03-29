@@ -1,0 +1,9 @@
+{
+  "name": "Remix: SentinelAI: Secure Intelligence Surveillance Network",
+  "description": "Enterprise-grade AI surveillance system with real-time face recognition, behavior analysis, and privacy-preserving features.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

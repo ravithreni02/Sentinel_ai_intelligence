@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Suspect": {
+      "title": "Suspect",
+      "description": "A person of interest in the surveillance system. Used for facial recognition matching.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the suspect" },
+        "risk_level": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"], "description": "Assessed threat level" },
+        "category": { "type": "string", "description": "Classification (e.g., Suspect, Missing Person, VIP)" },
+        "description": { "type": "string", "description": "Physical characteristics and known patterns" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"], "description": "Current surveillance status" },
+        "uid": { "type": "string", "description": "UID of the agent who registered the suspect" }
+      },
+      "required": ["name", "risk_level", "category", "description", "status"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "A real-time detection event triggered by AI analysis.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the alert was triggered" },
+        "camera_id": { "type": "string", "description": "Identifier of the camera source" },
+        "location": { "type": "string", "description": "Human-readable location name" },
+        "suspect_id": { "type": "string", "description": "Reference to the matched Suspect document" },
+        "suspect_name": { "type": "string", "description": "Name of the matched suspect (denormalized)" },
+        "risk_level": { "type": "string", "description": "Risk level at the time of alert" },
+        "confidence": { "type": "number", "description": "AI confidence score (0-1)" },
+        "behavior_flag": { "type": "string", "description": "Detected suspicious behavior description" },
+        "status": { "type": "string", "enum": ["Pending", "Resolved"], "description": "Incident response status" }
+      },
+      "required": ["timestamp", "camera_id", "location", "confidence", "behavior_flag", "status"]
+    },
+    "AgentSignup": {
+      "title": "Agent Signup",
+      "description": "Application for field agent access.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "post": { "type": "string", "description": "Desired post or department" },
+        "role": { "type": "string", "description": "Requested role within the network" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "post", "role", "status", "timestamp"]
+    },
+    "ContactMessage": {
+      "title": "Contact Message",
+      "description": "Inquiries sent to headquarters.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/suspects/{suspectId}": {
+      "schema": "Suspect",
+      "description": "Database of high-risk individuals"
+    },
+    "/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "Stream of real-time security alerts"
+    },
+    "/agent_signups/{signupId}": {
+      "schema": "AgentSignup",
+      "description": "Applications for system access"
+    },
+    "/contact_messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Headquarters communication log"
+    }
+  }
+}
